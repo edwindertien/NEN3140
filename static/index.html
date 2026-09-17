@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apparatenkeur</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1>Apparatenkeur</h1>
+  <nav>
+    <button id="nav-keuren" class="nav-knop actief">Keuren</button>
+    <button id="nav-rapportages" class="nav-knop">Rapportages</button>
+    <button id="nav-overzicht" class="nav-knop">Overzicht</button>
+    <button id="nav-import" class="nav-knop">Importeren</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ===================== KEUREN-TAB ===================== -->
+<div id="tab-keuren">
+  <div id="nfc-status" class="badge">NFC controleren...</div>
+
+  <section id="stap-identificatie" class="kaart">
+    <h2>1. Apparaat identificeren</h2>
+    <button id="btn-scan" class="knop-primair">Scan NFC-tag</button>
+    <button id="btn-scan-qr" class="knop-primair">Scan QR-code</button>
+    <div id="qr-status" class="feedback onbekend verborgen"></div>
+    <div id="qr-scanner-wrap" class="verborgen">
+      <video id="qr-video" playsinline muted></video>
+      <canvas id="qr-canvas" class="verborgen"></canvas>
+      <label>Camera <select id="camera-select"></select></label>
+      <button id="btn-stop-qr" class="knop-tekst">Annuleer scan</button>
+    </div>
+
+    <div class="of">of kies uit de lijst:</div>
+    <select id="select-apparaat">
+      <option value="">-- kies apparaat --</option>
+    </select>
+
+    <div class="of">of typ het nummer handmatig:</div>
+    <div class="rij">
+      <input id="input-nummer" placeholder="bv. 30011004" inputmode="numeric">
+      <button id="btn-zoek" class="knop-secundair">Zoek</button>
+    </div>
+  </section>
+
+  <section id="stap-gevonden" class="kaart verborgen">
+    <h2>2. Apparaat gevonden</h2>
+    <div id="apparaat-info"></div>
+    <div id="apparaat-geschiedenis"></div>
+    <button id="btn-start-keuring" class="knop-primair">Start keuring</button>
+    <button id="btn-annuleer-gevonden" class="knop-tekst">Ander apparaat</button>
+  </section>
+
+  <section id="stap-onherkend" class="kaart verborgen">
+    <h2>Onherkende code</h2>
+    <p class="uitleg">Dit is wel gelezen, maar komt niet overeen met onze apparaatcodes
+      (verwacht: 8 cijfers, bv. 30011004). Vermoedelijk een andere tag/barcode.</p>
+    <p><strong>Gelezen:</strong> <code id="onherkend-ruw"></code></p>
+    <p class="uitleg">Bron: <span id="onherkend-bron"></span></p>
+    <button id="btn-onherkend-terug" class="knop-primair">Opnieuw proberen</button>
+  </section>
+
+  <section id="stap-nieuw" class="kaart verborgen">
+    <h2>2. Nieuw apparaat registreren</h2>
+    <p>Nummer <strong id="nieuw-nummer-tonen"></strong> is nog niet bekend.</p>
+    <form id="form-nieuw">
+      <label>Categorie
+        <select name="categorie">
+          <option value="gereedschap">gereedschap</option>
+          <option value="keuken">keuken</option>
+          <option value="verlichting">verlichting</option>
+          <option value="verlengkabels">verlengkabels</option>
+          <option value="ICT">ICT</option>
+          <option value="brand-BHV">brand-BHV</option>
+        </select>
+      </label>
+      <label>Omschrijving <input name="omschrijving" required></label>
+      <label>Fabrikant / type <input name="fabrikant"></label>
+      <label>Serienummer <input name="serienummer"></label>
+      <label>Keurmerk <input name="keurmerk" placeholder="CE, KEMA, ..."></label>
+      <label>Klasse
+        <select name="klasse" required>
+          <option value="I">I (met aarde)</option>
+          <option value="II">II (dubbel geisoleerd)</option>
+          <option value="snoer">Snoer / verlengkabel</option>
+        </select>
+      </label>
+      <label>Keuringstermijn (maanden) <input name="keuringstermijn_maanden" type="number" value="12"></label>
+      <label>Kabellengte (m) <input name="kabellengte_m" type="number" step="0.1"></label>
+      <label>Kabeldiameter (mm²) <input name="kabeldiameter_mm2" type="number" step="0.1"></label>
+      <label>Aanschafdatum <input name="aanschaf" type="date"></label>
+      <button type="submit" class="knop-primair">Registreren en doorgaan naar keuring</button>
+    </form>
+    <button id="btn-annuleer-nieuw" class="knop-tekst">Annuleren</button>
+  </section>
+
+  <section id="stap-keuring" class="kaart verborgen">
+    <h2>3. Keuring - <span id="keuring-nummer-tonen"></span></h2>
+    <form id="form-keuring">
+      <input type="hidden" name="nummer" id="keuring-nummer-veld">
+
+      <fieldset>
+        <legend>Foto's</legend>
+        <label>Foto van het apparaat
+          <input type="file" name="foto_apparaat" accept="image/*" capture="environment">
+        </label>
+        <label>Foto('s) van mankementen (optioneel, meerdere mogelijk)
+          <input type="file" name="foto_mankementen" accept="image/*" capture="environment" multiple>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Visuele inspectie</legend>
+        <label>Bevindingen
+          <textarea name="visuele_inspectie_tekst" rows="3" placeholder="behuizing, snoer, stekker, ventilatie, markering..."></textarea>
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" name="visuele_inspectie_akkoord" id="visueel-akkoord" checked>
+          Visuele inspectie akkoord (geen zichtbare schade/gebreken)
+        </label>
+      </fieldset>
+
+      <fieldset id="fieldset-rpe">
+        <legend>Weerstand beschermingsleiding (Rpe) - alleen klasse I / snoer</legend>
+        <label>Rpe gemeten (Ω) <input type="number" step="0.01" name="rpe_ohm" id="input-rpe"></label>
+        <div id="rpe-feedback" class="feedback"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Isolatieweerstand (Riso)</legend>
+        <label>Riso gemeten (MΩ) <input type="number" step="0.01" name="riso_mohm" id="input-riso"></label>
+        <div id="riso-feedback" class="feedback"></div>
+      </fieldset>
+
+      <fieldset id="fieldset-lekstroom">
+        <legend>Lekstroom</legend>
+        <label>Type meting
+          <select name="lekstroom_type">
+            <option value="reeel">reeel (230V aangesloten)</option>
+            <option value="aanraak">aanraaklekstroom (klasse II)</option>
+            <option value="vervangend">vervangend (zonder 230V)</option>
+          </select>
+        </label>
+        <label>Lekstroom gemeten (mA) <input type="number" step="0.01" name="lekstroom_ma" id="input-lekstroom"></label>
+        <label>Keramisch verwarmingselement? Vermogen (kW), laat leeg indien n.v.t.
+          <input type="number" step="0.1" name="keramisch_vermogen_kw">
+        </label>
+        <div id="lekstroom-feedback" class="feedback"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Overig</legend>
+        <label>Keurmeester <input name="keurmeester"></label>
+        <label>Opmerkingen / ondernomen actie <textarea name="opmerkingen" rows="2"></textarea></label>
+      </fieldset>
+
+      <button type="submit" class="knop-primair">Keuring opslaan</button>
+    </form>
+    <button id="btn-annuleer-keuring" class="knop-tekst">Annuleren</button>
+  </section>
+
+  <section id="stap-resultaat" class="kaart verborgen">
+    <h2 id="resultaat-titel"></h2>
+    <p id="resultaat-reden"></p>
+    <button id="btn-nieuwe-keuring" class="knop-primair">Volgende apparaat</button>
+  </section>
+
+  <footer>
+    <a href="/api/export/xlsx" class="knop-secundair">Exporteer naar Excel</a>
+    <a href="/api/export/ods" class="knop-secundair">Exporteer naar ODS</a>
+  </footer>
+</div>
+
+<!-- ===================== OVERZICHT-TAB ===================== -->
+<div id="tab-overzicht" class="verborgen">
+  <section class="kaart">
+    <h2>Tabeloverzicht</h2>
+    <p class="uitleg">Dezelfde twee tabellen als de Excel/ODS-export, maar direct doorzoekbaar en sorteerbaar.
+      Klik op een kolomkop om te sorteren.</p>
+    <div class="mini-rij">
+      <div>
+        <button id="ov-toon-apparaten" class="knop-primair">Apparaten</button>
+      </div>
+      <div>
+        <button id="ov-toon-keuringen" class="knop-secundair">Keuringen</button>
+      </div>
+    </div>
+    <input id="ov-filter" placeholder="Filter (zoekt in alle kolommen)...">
+  </section>
+  <section class="kaart">
+    <div id="ov-tabel-wrap" style="overflow-x:auto;"></div>
+  </section>
+</div>
+
+<!-- ===================== RAPPORTAGES-TAB ===================== -->
+<div id="tab-rapportages" class="verborgen">
+  <section class="kaart">
+    <h2>Keuringsrapportages</h2>
+    <div class="mini-rij">
+      <div><label>Apparaatnummer <input id="rap-filter-nummer" placeholder="laat leeg voor alles"></label></div>
+      <div><label>Eindoordeel
+        <select id="rap-filter-oordeel">
+          <option value="">alle</option>
+          <option value="GOEDGEKEURD">Goedgekeurd</option>
+          <option value="AFGEKEURD">Afgekeurd</option>
+          <option value="ONVOLLEDIG">Onvolledig</option>
+        </select>
+      </label></div>
+    </div>
+    <div class="mini-rij">
+      <div><label>Vanaf <input id="rap-filter-vanaf" type="date"></label></div>
+      <div><label>Tot <input id="rap-filter-tot" type="date"></label></div>
+    </div>
+    <button id="btn-rap-zoek" class="knop-primair">Zoeken</button>
+  </section>
+
+  <section id="rap-lijst"></section>
+  <section id="rap-detail" class="kaart verborgen"></section>
+</div>
+
+<!-- ===================== IMPORT-TAB ===================== -->
+<div id="tab-import" class="verborgen">
+
+  <section class="kaart">
+    <h2>Apparatenbestand importeren (Excel/ODS)</h2>
+    <p class="uitleg">Voor het bulk-inladen van apparaten: exporteer eerst met de knoppen
+      bij "Keuren" om het juiste format te zien, bewerk in Excel/LibreOffice, en importeer
+      hier terug. Verplichte kolommen: <code>nummer</code> en <code>klasse</code> (I, II of snoer);
+      de rest is optioneel. Een apparaatnummer dat al bestaat wordt als conflict getoond,
+      nooit stilzwijgend overschreven.</p>
+    <input type="file" id="apparaten-import-bestand" accept=".xlsx,.ods">
+    <button id="btn-apparaten-analyseer" class="knop-primair">Analyseer bestand</button>
+  </section>
+
+  <section id="apparaten-import-resultaat" class="verborgen">
+    <section class="kaart" id="ap-groep-nieuw-sectie">
+      <h2>Nieuw - klaar om toe te voegen</h2>
+      <div id="ap-groep-nieuw"></div>
+    </section>
+    <section class="kaart verborgen" id="ap-groep-conflict-sectie">
+      <h2>Bestaat al - kies wat te doen</h2>
+      <div id="ap-groep-conflict"></div>
+    </section>
+    <section class="kaart verborgen" id="ap-groep-fout-sectie">
+      <h2>Fouten - worden niet geimporteerd</h2>
+      <div id="ap-groep-fout"></div>
+    </section>
+    <button id="btn-apparaten-bevestig" class="knop-primair">Bevestig en importeer geselecteerde rijen</button>
+    <div id="apparaten-import-samenvatting"></div>
+  </section>
+
+  <section class="kaart">
+    <h2>EazyPAT-export importeren</h2>
+    <p class="uitleg">Upload het .csv-bestand dat <code>eazypat_lezen.py</code> heeft weggeschreven.
+      Er wordt <strong>nooit automatisch</strong> gekoppeld op volgorde - alleen op een
+      exacte match van het testobjectnummer. Bij twijfel of een grijze-zone-meting
+      moet je dit hieronder zelf bevestigen.</p>
+    <input type="file" id="import-bestand" accept=".csv,.txt">
+    <button id="btn-analyseer" class="knop-primair">Analyseer bestand</button>
+  </section>
+
+  <section id="import-resultaat" class="verborgen">
+
+    <section class="kaart" id="groep-klaar-sectie">
+      <h2>Klaar om te importeren</h2>
+      <div id="groep-klaar"></div>
+    </section>
+
+    <section class="kaart verborgen" id="groep-grijs-sectie">
+      <h2>Grijze zone - lengte/diameter nodig (Aarde 0.2-1.0 Ω)</h2>
+      <div id="groep-grijs"></div>
+    </section>
+
+    <section class="kaart verborgen" id="groep-onbekend-sectie">
+      <h2>Onbekend testobjectnummer - koppel handmatig</h2>
+      <div id="groep-onbekend"></div>
+    </section>
+
+    <button id="btn-bevestig-import" class="knop-primair">Bevestig en importeer geselecteerde rijen</button>
+    <div id="import-samenvatting"></div>
+  </section>
+
+</div>
+
+</main>
+
+<script src="/static/vendor/jsQR.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>
