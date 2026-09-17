@@ -8,15 +8,16 @@ een volgende sessie (mens of AI) dezelfde paden opnieuw moet uitzoeken.
 ## Architectuurkeuzes
 
 **Flask, niet FastAPI/uvicorn.** Oorspronkelijk gebouwd op FastAPI. Overgestapt
-omdat Edwin in andere projecten Flask gebruikt, en omdat een kaal `uvicorn
+naar Flask omdat dat in andere projecten al gebruikt wordt, en omdat een kaal
+`uvicorn
 app:app`-commando gevoelig bleek voor PATH-verwarring tussen meerdere Python-
 omgevingen op zijn Mac (PlatformIO's eigen venv claimde het `uvicorn`-commando).
 `python app.py` gebruikt altijd de actief geactiveerde Python, wat dat probleem
 structureel voorkomt.
 
 **CSV-bestanden, geen database.** Bewuste keuze: leesbaar, makkelijk te back-
-uppen, makkelijk te openen in Excel voor een snelle blik, en sluit aan bij hoe
-Edwin al werkte (Zoho WorkDrive-spreadsheets). Nadeel (geaccepteerd): geen
+uppen, makkelijk te openen in Excel voor een snelle blik, en sluit aan bij de
+al bestaande werkwijze (Zoho WorkDrive-spreadsheets). Nadeel (geaccepteerd): geen
 gelijktijdige-schrijfbeveiliging — voor een handjevol gebruikers geen
 praktisch probleem.
 
@@ -38,9 +39,8 @@ een expliciete handmatige koppelstap — nooit een aanname op basis van volgorde
 of aantal.
 
 **Automatische HTTPS via mkcert, met bestandsgebaseerde config.** Eerst een
-handmatige `ssl_context=(...)`-regel in `app.py` die Edwin zelf moest
-aanpassen — ging twee keer stuk doordat een volledige herbouw van `app.py`
-die regel overschreef. Opgelost door de HTTPS-config te laten afhangen van
+handmatige `ssl_context=(...)`-regel in `app.py` — ging twee keer stuk
+doordat een volledige herbouw van `app.py` die regel overschreef. Opgelost door de HTTPS-config te laten afhangen van
 bestanden in `certs/` (gedetecteerd via meerdere naampatronen, zie
 `netwerk_setup.py`) in plaats van een regel code — overleeft toekomstige
 herbouwstukken van `app.py` per definitie.
@@ -57,7 +57,7 @@ herbouwstukken van `app.py` per definitie.
 - Protocol: puur eenrichtingsverkeer. De software stuurt niets; de gebruiker
   houdt "Oproepen" 5 seconden ingedrukt op de tester zelf, die dan de
   opgeslagen metingen als platte, puntkomma-gescheiden tekst stuurt (bevestigd
-  met een echte export van Edwin: 43 kolommen, decimale komma's, `<`/`>` als
+  met een echte export: 43 kolommen, decimale komma's, `<`/`>` als
   grenswaarde-aanduiding).
 - Geheugen: 999 metingen, bevestigd via de handleiding en twee onafhankelijke
   retailer-productpagina's.
@@ -70,7 +70,7 @@ drempel van 0.3Ω met een onvolledige lengte/diameter-tabel — bleek bij het
 doorlezen van een completere versie van de handleiding fout: de echte
 drempel is 0.2Ω, met een fijnmaziger tabel (extra kolommen voor 1.5mm² en
 25mm², eerste lengte-bucket "<2m" i.p.v. "<5m"). Herstel gevalideerd door de
-volledige logica terug te rekenen tegen een echte EazyPAT-export van Edwin
+volledige logica terug te rekenen tegen een echte EazyPAT-export
 (27 deeloordelen, allemaal exact overeenkomend met wat de tester zelf al had
 opgeslagen). Belangrijke nuance die daarbij aan het licht kwam: voor
 Aarde-waarden tussen 0.2-1.0Ω kan geen enkele software zelfstandig goed/fout
@@ -101,7 +101,7 @@ echt toestel.
 besturingssysteem onafhankelijke certificaatopslag bij — `mkcert -install`
 voegt de CA alleen toe aan de macOS-systeem-sleutelhanger, waar Chrome/Edge/
 Opera/Safari wél naar kijken. Firefox toont daardoor `SEC_ERROR_UNKNOWN_ISSUER`
-tenzij je de CA daar apart importeert (Instellingen > Privacy en beveiliging
+tenzij die CA daar apart geïmporteerd wordt (Instellingen > Privacy en beveiliging
 > Certificaten) of steeds handmatig doorklikt.
 
 **Flask sorteert JSON-sleutels standaard alfabetisch** (`app.json.sort_keys`),
@@ -157,7 +157,7 @@ zijn eigen vaste kolomvolgorde via `APPARAAT_VELDEN`/`KEURING_VELDEN`.
   bevatte: nieuw, conflict, ontbrekend nummer, ongeldige klasse, niet-
   numerieke waarde — elke situatie kwam in de juiste categorie terecht,
   zowel voor .xlsx als .ods.
-- EazyPAT-CSV-importlogica getest met echte voorbeelddata van Edwin,
+- EazyPAT-CSV-importlogica getest met echte voorbeelddata,
   inclusief het klaar/grijze-zone/onbekend-onderscheid.
 - Overzicht-tabel se sorteer-/filterlogica getest (inclusief een test-
   artefact-valkuil: gedeelde array-referenties tussen gestubte fetch-calls
@@ -168,7 +168,7 @@ zijn eigen vaste kolomvolgorde via `APPARAAT_VELDEN`/`KEURING_VELDEN`.
 ## Open vragen / niet (verder) uitgezocht
 
 - **Apparaatcode-patroon (8 cijfers)** is een aanname op basis van tot nu toe
-  geziene nummers (bv. `30011004`), niet expliciet bevestigd door Edwin als
+  geziene nummers (bv. `30011004`), niet expliciet bevestigd als
   hét vaste formaat. Staat in `APPARAATCODE_PATROON` in `app.js` — een plek
   om aan te passen mocht het toch anders blijken te zijn.
 - **`termux-nfc`-syntax** nooit geverifieerd tegen een echt toestel — alleen
